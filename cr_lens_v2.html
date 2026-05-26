@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CR Lens — Shopping Prototype</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;background:#f0f0ed;overflow:hidden}
+
+/* ── SHELL ── */
+.shell{display:grid;grid-template-columns:1fr 320px;height:100vh}
+
+/* ── BROWSER ── */
+.browser{display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.bbar{background:#f5f5f2;border-bottom:1px solid #ddddd8;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.bdots{display:flex;gap:5px}
+.bd{width:9px;height:9px;border-radius:50%}
+.bd:nth-child(1){background:#ff5f57}
+.bd:nth-child(2){background:#febc2e}
+.bd:nth-child(3){background:#28c840}
+.burl{flex:1;background:#fff;border:1px solid #ddddd8;border-radius:7px;padding:5px 12px;font-size:12px;color:#666;outline:none;cursor:default}
+.cr-lens-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#E1F5EE;color:#085041;border-radius:20px;padding:3px 10px;font-weight:500;flex-shrink:0}
+.bbody{flex:1;overflow-y:auto}
+
+/* ── SCREENS ── */
+.screen{display:none;padding:0}
+.screen.on{display:block}
+
+/* Search results */
+.serp{padding:16px}
+.serp-meta{font-size:12px;color:#888;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #f0f0ed}
+.serp-card{display:flex;gap:12px;padding:12px;border:1px solid #ddddd8;border-radius:10px;margin-bottom:8px;cursor:pointer;background:#fafaf8;transition:all .15s;position:relative}
+.serp-card:hover{border-color:#5DCAA5;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.serp-card.viewed{border-left:3px solid #1D9E75;background:#fff}
+.sc-thumb{width:72px;height:56px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;background:#f0f0ed;flex-shrink:0}
+.sc-info{flex:1;min-width:0}
+.sc-name{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:2px}
+.sc-seller{font-size:11px;color:#999;margin-bottom:5px}
+.sc-price{font-size:15px;font-weight:700;color:#1a1a1a}
+.sc-score{display:flex;align-items:center;gap:5px;margin-top:4px}
+.sb{width:44px;height:3px;background:#e5e5e0;border-radius:2px}
+.sbf{height:100%;border-radius:2px;background:#1D9E75}
+.sbn{font-size:11px;color:#085041;font-weight:600}
+.sc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:500}
+.tg{background:#E1F5EE;color:#085041}
+.ta{background:#FAEEDA;color:#633806}
+.tr{background:#FCEBEB;color:#A32D2D}
+.tn{background:#f0f0ed;color:#555}
+.sc-viewed{position:absolute;top:8px;right:8px;font-size:10px;color:#1D9E75;font-weight:600}
+
+/* Product detail page */
+.pdp{padding:0}
+.pdp-back{display:flex;align-items:center;gap:6px;padding:10px 16px;font-size:12px;color:#1D9E75;cursor:pointer;border-bottom:1px solid #f0f0ed;font-weight:500}
+.pdp-back:hover{background:#f9f9f7}
+.pdp-body{padding:16px}
+.pdp-hero{display:flex;gap:16px;margin-bottom:16px}
+.pdp-img{width:140px;height:110px;background:#f0f0ed;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:48px;flex-shrink:0}
+.pdp-info{}
+.pdp-name{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:4px;line-height:1.3}
+.pdp-seller{font-size:12px;color:#999;margin-bottom:8px}
+.pdp-price{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:8px}
+.pdp-score-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pdp-score-big{font-size:28px;font-weight:700;color:#085041}
+.pdp-score-lbl{font-size:12px;color:#888;line-height:1.4}
+.pdp-add-btn{padding:10px 20px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.pdp-section{margin-bottom:16px}
+.pdp-sec-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:8px}
+.pdp-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.spec-item{background:#f5f5f2;border-radius:7px;padding:8px 10px}
+.spec-lbl{font-size:10px;color:#999;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.spec-val{font-size:12px;font-weight:500;color:#1a1a1a;line-height:1.3}
+.review-row{padding:8px 0;border-bottom:1px solid #f0f0ed;font-size:13px;color:#555;line-height:1.5}
+.review-row:last-child{border-bottom:none}
+.r-stars{color:#f5a623;font-size:11px;margin-bottom:2px}
+
+/* Activity log screen */
+.log-screen{padding:16px}
+.log-banner{background:#E1F5EE;border:1px solid #5DCAA5;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start}
+.log-banner i{color:#085041;margin-top:1px;flex-shrink:0}
+.log-banner-txt{font-size:13px;color:#085041;line-height:1.5}
+.log-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0ed}
+.log-item:last-child{border-bottom:none}
+.log-name{flex:1;font-size:13px;font-weight:500;color:#1a1a1a}
+.log-detail{font-size:12px;color:#888}
+.log-stat{font-size:12px;font-weight:600}
+.ls-done{color:#1D9E75}
+.ls-pend{color:#854F0B}
+.undo-btn{font-size:11px;padding:3px 9px;border-radius:10px;border:1px solid #ddddd8;background:#fff;color:#666;cursor:pointer;margin-left:4px}
+.undo-btn:hover{border-color:#E24B4A;color:#E24B4A}
+
+/* Trust break screen */
+.trust-screen{padding:16px}
+.trust-banner{background:#FCEBEB;border:1px solid #F09595;border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;gap:10px}
+.trust-banner i{color:#A32D2D;flex-shrink:0;margin-top:1px}
+.trust-banner-txt{font-size:13px;color:#791F1F;line-height:1.5}
+
+/* ── CR SIDEBAR ── */
+.cr-side{border-left:1px solid #ddddd8;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.cr-hdr{background:#f5f5f2;border-bottom:1px solid #ddddd8;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cr-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:#E1F5EE;color:#085041;border-radius:20px;padding:3px 10px;font-weight:600}
+.cr-mode{font-size:11px;color:#999;margin-left:auto}
+.cr-tabs{display:flex;border-bottom:1px solid #ddddd8;flex-shrink:0}
+.cr-tab{flex:1;padding:8px 4px;font-size:12px;text-align:center;cursor:pointer;color:#888;background:transparent;border:none;border-bottom:2px solid transparent;transition:all .15s}
+.cr-tab.on{color:#1D9E75;border-bottom-color:#1D9E75;font-weight:600}
+.cr-pane{display:none;flex:1;overflow-y:auto;padding:12px;flex-direction:column;gap:8px}
+.cr-pane.on{display:flex}
+
+/* Lens feed */
+.feed-empty{text-align:center;padding:40px 16px;color:#ccc;font-size:13px;line-height:1.8}
+.feed-msg{border-radius:10px 10px 10px 3px;padding:9px 12px;font-size:13px;color:#1a1a1a;line-height:1.5;background:#f5f5f2}
+.feed-msg.green{background:#E1F5EE;color:#085041}
+.feed-msg.amber{background:#FAEEDA;color:#633806}
+.feed-msg.red{background:#FCEBEB;color:#791F1F}
+.action-card{background:#fff;border:1.5px solid #5DCAA5;border-radius:10px;padding:12px}
+.ac-hd{font-size:13px;font-weight:600;color:#1a1a1a;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.ac-bd{font-size:12px;color:#555;line-height:1.5;margin-bottom:10px}
+.ac-reasoning{background:#f5f5f2;border-radius:7px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:#666;line-height:1.5}
+.ac-reasoning strong{color:#1a1a1a;font-weight:600}
+.ac-btns{display:flex;gap:6px;flex-wrap:wrap}
+.ac-btn{font-size:12px;padding:6px 12px;border-radius:16px;cursor:pointer;border:1px solid #ddddd8;background:#f5f5f2;color:#1a1a1a;transition:all .15s;font-weight:500}
+.ac-btn:hover{border-color:#aaa}
+.ac-btn.pri{background:#1D9E75;color:#fff;border-color:#0F6E56}
+.ac-btn.warn{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.ac-btn.danger{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+
+/* Values pane */
+.val-inferred{background:#f5f5f2;border-radius:8px;padding:10px;margin-bottom:6px}
+.vi-hd{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#999;margin-bottom:8px}
+.vi-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px}
+.vi-row:last-child{margin-bottom:0}
+.vi-dot{width:6px;height:6px;border-radius:50%;background:#1D9E75;flex-shrink:0;margin-top:5px}
+.vi-label{font-size:12px;font-weight:500;color:#1a1a1a;line-height:1.3}
+.vi-src{font-size:11px;color:#999;margin-top:1px}
+.vi-edit{font-size:11px;color:#1D9E75;cursor:pointer;margin-top:2px;display:inline-block}
+.pref-sec{margin-bottom:14px}
+.pref-hd{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#999;margin-bottom:8px}
+.pref-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap}
+.pref-lbl{font-size:12px;color:#555;min-width:95px;flex-shrink:0}
+.pref-chip{font-size:11px;padding:3px 9px;border-radius:14px;border:1px solid #ddddd8;background:#f5f5f2;color:#666;cursor:pointer;transition:all .15s}
+.pref-chip.on{background:#E1F5EE;border-color:#5DCAA5;color:#085041;font-weight:500}
+.add-pref-btn{width:100%;padding:8px;background:#f5f5f2;border:1.5px dashed #ddddd8;border-radius:8px;font-size:12px;color:#888;cursor:pointer;text-align:center;transition:all .15s;margin-bottom:8px}
+.add-pref-btn:hover{border-color:#1D9E75;color:#085041}
+.add-form{display:none;background:#f5f5f2;border-radius:8px;padding:10px;margin-bottom:8px}
+.add-inp{width:100%;padding:7px 9px;font-size:12px;border:1px solid #ddddd8;border-radius:6px;background:#fff;margin-bottom:7px;outline:none}
+.add-inp:focus{border-color:#1D9E75}
+.add-row{display:flex;gap:6px}
+.add-save{flex:1;padding:7px;background:#1D9E75;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500}
+.add-cancel{padding:7px 10px;background:#fff;border:1px solid #ddddd8;border-radius:6px;font-size:12px;cursor:pointer;color:#666}
+.custom-val{background:#E1F5EE;border-radius:7px;padding:7px 10px;font-size:12px;color:#085041;display:flex;align-items:center;gap:6px;margin-bottom:5px;font-weight:500}
+.brand-sec{margin-bottom:14px}
+.brand-row{padding:9px 0;border-bottom:1px solid #f0f0ed}
+.brand-row:last-child{border-bottom:none}
+.brand-name{font-size:13px;font-weight:500;color:#1a1a1a}
+.brand-why{font-size:11px;color:#888;margin-top:2px;line-height:1.4}
+.brand-chips{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.bc{font-size:11px;padding:3px 9px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;font-weight:500}
+.bc-avoid{background:#FCEBEB;color:#A32D2D}
+.bc-flag{background:#f5f5f2;color:#555;border-color:#ddddd8}
+.bc-ok{background:#E1F5EE;color:#085041}
+.bc.sel{box-shadow:0 0 0 1.5px currentColor}
+.save-prefs{width:100%;padding:10px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+.save-ok{display:none;text-align:center;font-size:12px;color:#1D9E75;margin-top:6px;font-weight:500}
+
+/* Activity log pane */
+.log-pane-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0ed;font-size:12px}
+.log-pane-row:last-child{border-bottom:none}
+.lpr-name{flex:1;font-weight:500;color:#1a1a1a}
+.lpr-price{color:#888;font-size:11px}
+.lpr-stat{font-weight:600;font-size:11px}
+
+/* Scenario nav */
+.scenario-bar{background:#f5f5f2;border-bottom:1px solid #ddddd8;padding:8px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.scenario-lbl{font-size:11px;color:#888;flex-shrink:0}
+.snav-btn{font-size:11px;padding:4px 10px;border-radius:14px;border:1px solid #ddddd8;background:#fff;color:#555;cursor:pointer;transition:all .15s;font-weight:500}
+.snav-btn:hover{border-color:#1D9E75;color:#085041}
+.snav-btn.on{background:#1D9E75;color:#fff;border-color:#0F6E56}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- BROWSER COLUMN -->
+  <div class="browser">
+    <div class="bbar">
+      <div class="bdots"><div class="bd"></div><div class="bd"></div><div class="bd"></div></div>
+      <div class="burl" id="burl">google.com — best TV under $800</div>
+      <div class="cr-lens-chip"><i class="ti ti-shield-check" style="font-size:11px"></i> CR Lens active</div>
+    </div>
+    <div class="scenario-bar">
+      <span class="scenario-lbl">Flow:</span>
+      <button class="snav-btn on" onclick="goFlow('research')">A — Research</button>
+      <button class="snav-btn" onclick="goFlow('execution')">B — Execution</button>
+      <button class="snav-btn" onclick="goFlow('identity')">C — Identity</button>
+      <button class="snav-btn" onclick="goFlow('trust')">D — Trust break</button>
+    </div>
+    <div class="bbody" id="bbody">
+      <!-- screens injected here -->
+    </div>
+  </div>
+
+  <!-- CR SIDEBAR -->
+  <div class="cr-side">
+    <div class="cr-hdr">
+      <div class="cr-badge"><i class="ti ti-shield-check" style="font-size:11px"></i> CR Lens</div>
+      <span class="cr-mode" id="cr-mode">Observing</span>
+    </div>
+    <div class="cr-tabs">
+      <button class="cr-tab on" onclick="crTab('lens')">Lens</button>
+      <button class="cr-tab" onclick="crTab('values')">Your values</button>
+      <button class="cr-tab" onclick="crTab('log')">Activity</button>
+    </div>
+
+    <!-- LENS PANE -->
+    <div class="cr-pane on" id="pane-lens">
+      <div class="feed-empty" id="feed-empty">CR Lens is observing.<br>Tap a product to see<br>what CR knows about it.</div>
+    </div>
+
+    <!-- VALUES PANE -->
+    <div class="cr-pane" id="pane-values">
+      <div class="val-inferred">
+        <div class="vi-hd">Inferred from your browsing</div>
+        <div id="inferred-rows">
+          <div style="font-size:12px;color:#bbb;text-align:center;padding:4px">Nothing yet — start browsing</div>
+        </div>
+      </div>
+      <div class="pref-sec">
+        <div class="pref-hd">Your priorities</div>
+        <div class="pref-row"><span class="pref-lbl">Price vs quality</span><span class="pref-chip on" onclick="ch(this)">Quality first</span><span class="pref-chip" onclick="ch(this)">Balanced</span><span class="pref-chip" onclick="ch(this)">Price first</span></div>
+        <div class="pref-row"><span class="pref-lbl">Long-term data</span><span class="pref-chip on" onclick="ch(this)">Essential</span><span class="pref-chip" onclick="ch(this)">Nice to have</span><span class="pref-chip" onclick="ch(this)">Don't care</span></div>
+        <div class="pref-row"><span class="pref-lbl">Seller type</span><span class="pref-chip on" onclick="ch(this)">Direct brands</span><span class="pref-chip" onclick="ch(this)">Authorized</span><span class="pref-chip" onclick="ch(this)">Anywhere</span></div>
+        <div class="pref-row"><span class="pref-lbl">Auto-buy up to</span><span class="pref-chip" onclick="ch(this)">Never</span><span class="pref-chip on" onclick="ch(this)">$25</span><span class="pref-chip" onclick="ch(this)">$50</span><span class="pref-chip" onclick="ch(this)">$100</span></div>
+        <div id="custom-prefs"></div>
+        <button class="add-pref-btn" onclick="showAdd()">+ Add your own rule</button>
+        <div class="add-form" id="add-form">
+          <input class="add-inp" id="add-inp" placeholder="e.g. Always prefer B-Corps, Never fast fashion...">
+          <div class="add-row"><button class="add-save" onclick="doAdd()">Save</button><button class="add-cancel" onclick="hideAdd()">Cancel</button></div>
+        </div>
+      </div>
+      <div class="brand-sec">
+        <div class="pref-hd">Brand ethics</div>
+        <div class="brand-row"><div class="brand-name">Amazon / Marketplace</div><div class="brand-why">Labor conditions, tax structure, market dominance</div><div class="brand-chips"><span class="bc bc-avoid" onclick="bc(this)">Avoid</span><span class="bc bc-flag sel" onclick="bc(this)">Flag it</span><span class="bc bc-ok" onclick="bc(this)">No preference</span></div></div>
+        <div class="brand-row"><div class="brand-name">Fast fashion</div><div class="brand-why">Shein, Temu, Zara, H&M — environmental & labor</div><div class="brand-chips"><span class="bc bc-avoid" onclick="bc(this)">Avoid</span><span class="bc bc-flag" onclick="bc(this)">Flag it</span><span class="bc bc-ok sel" onclick="bc(this)">No preference</span></div></div>
+        <div class="brand-row"><div class="brand-name">Active boycott brands</div><div class="brand-why">Coca-Cola, Nestlé, HP — contested campaigns</div><div class="brand-chips"><span class="bc bc-avoid" onclick="bc(this)">Avoid</span><span class="bc bc-flag" onclick="bc(this)">Flag it</span><span class="bc bc-ok sel" onclick="bc(this)">No preference</span></div></div>
+        <div class="brand-row"><div class="brand-name">Big conglomerates</div><div class="brand-why">P&G, Unilever, Nestlé — market dominance</div><div class="brand-chips"><span class="bc bc-avoid" onclick="bc(this)">Avoid</span><span class="bc bc-flag" onclick="bc(this)">Flag it</span><span class="bc bc-ok sel" onclick="bc(this)">No preference</span></div></div>
+        <div class="brand-row"><div class="brand-name">Labor-contested tech</div><div class="brand-why">Samsung, Apple, Nike — factory conditions</div><div class="brand-chips"><span class="bc bc-avoid" onclick="bc(this)">Avoid</span><span class="bc bc-flag sel" onclick="bc(this)">Flag it</span><span class="bc bc-ok" onclick="bc(this)">No preference</span></div></div>
+      </div>
+      <button class="save-prefs" onclick="savePrefs()">Save preferences</button>
+      <div class="save-ok" id="save-ok">Saved — CR Lens updated ✓</div>
+    </div>
+
+    <!-- ACTIVITY PANE -->
+    <div class="cr-pane" id="pane-log">
+      <div style="font-size:12px;color:#bbb;text-align:center;padding:20px" id="log-empty">No activity yet</div>
+      <div id="log-rows"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+var PRODUCTS={
+  tv:[
+    {id:'tcl',e:'📺',n:'TCL 55" 4-Series',s:'Amazon',p:'$279',cr:76,stake:'low',
+     tags:['tn:Decent picture','ta:Limited long-term data'],brands:['amazon'],
+     specs:{Resolution:'4K UHD',Display:'VA panel',HDR:'HDR10',Refresh:'60Hz',Warranty:'1yr'},
+     reviews:['Great for the price, does exactly what I need.','Picture is fine but the remote stopped working at 14 months.','For a guest room this is perfect.'],
+     flags:[{t:'a',tx:'Limited long-term data — under 2 years of owner reports'},{t:'g',tx:'Best value option in the under-$300 range'}]},
+    {id:'hisense',e:'📺',n:'Hisense 55" U6 Series',s:'Best Buy',p:'$349',cr:81,stake:'low',
+     tags:['tg:Best in category','tg:Strong satisfaction'],brands:[],
+     specs:{Resolution:'4K UHD',Display:'QLED',HDR:'Dolby Vision',Refresh:'60Hz',Warranty:'2yr'},
+     reviews:['Best TV under $400 full stop.','Had mine 3 years, zero issues.','Colors are surprisingly vivid for the price.'],
+     flags:[{t:'g',tx:'Best CR score under $400'},{t:'g',tx:'Low return rate (3.8%) and strong long-term satisfaction'}]},
+    {id:'samsung',e:'📺',n:'Samsung 65" QN85B',s:'Samsung.com',p:'$797',cr:88,stake:'med',
+     tags:['tg:Strong 4yr data','ta:Labor flag'],brands:['tech'],
+     specs:{Resolution:'4K QLED',Display:'Neo QLED',HDR:'HDR10+',Refresh:'120Hz',Warranty:'1yr'},
+     reviews:['Picture quality is exceptional.','Runs warm but no issues after 2 years.','Best Samsung I\'ve owned.'],
+     flags:[{t:'g',tx:'Sold direct from Samsung — not a marketplace seller'},{t:'a',tx:'Samsung faces documented criticism over labor practices in South Korean factories'}]},
+    {id:'sony',e:'📺',n:'Sony 65" X90L',s:'Best Buy',p:'$749',cr:91,stake:'med',
+     tags:['tg:Top rated in budget','ta:Remote app issues'],brands:[],
+     specs:{Resolution:'4K Full Array',Display:'LED',HDR:'Dolby Vision',Refresh:'120Hz',Warranty:'1yr'},
+     reviews:['Google TV interface is the best.','Remote app drops occasionally but the TV itself is flawless.','Would buy again without hesitation.'],
+     flags:[{t:'g',tx:'Highest CR score in the $800 range'},{t:'a',tx:'Some owner complaints about the Sony remote app dropping Bluetooth connection'}]},
+    {id:'lg',e:'📺',n:'LG 65" C3 OLED',s:'LG.com',p:'$1,296',cr:94,stake:'high',
+     tags:['tg:Best picture quality','tr:Burn-in risk'],brands:[],
+     specs:{Resolution:'4K OLED',Display:'OLED evo',HDR:'Dolby Vision IQ',Refresh:'120Hz',Warranty:'1yr'},
+     reviews:['Best picture I have ever seen period.','Burn-in appeared after 18 months of daily news channel — be careful with static content.','Film watching is transformative.'],
+     flags:[{t:'g',tx:'Best color accuracy available — reference grade for film watching'},{t:'r',tx:'Burn-in risk: static images held for long periods can permanently damage OLED panels'}]}
+  ],
+  shoes:[
+    {id:'nike',e:'👟',n:'Nike Pegasus 41',s:'Nike.com',p:'$135',cr:82,stake:'identity',
+     tags:['tg:Verified durability','ta:Labor practices'],brands:['tech'],
+     specs:{Type:'Neutral road',Drop:'10mm',Stack:'32mm heel',Weight:'274g','Upper':'Engineered mesh'},
+     reviews:['My go-to for 5+ years.','Consistent, reliable, nothing flashy.','Labor practices concern me but the shoe itself is excellent.'],
+     flags:[{t:'g',tx:'Strong long-term owner data — most durable in neutral running category'},{t:'a',tx:'Nike labor practices contested — factory working conditions criticism'}]},
+    {id:'brooks',e:'👟',n:'Brooks Ghost 16',s:'Running Warehouse',p:'$140',cr:85,stake:'identity',
+     tags:['tg:Fewest fit complaints','tg:No brand flags'],brands:[],
+     specs:{Type:'Neutral road',Drop:'12mm',Stack:'31mm heel',Weight:'281g','Upper':'3D Fit Print'},
+     reviews:['Most comfortable running shoe I\'ve owned.','Went from Ghost 14 to 16 — each version gets better.','Perfect for long slow runs.'],
+     flags:[{t:'g',tx:'Fewest fit complaints of any neutral shoe in this range'},{t:'g',tx:'No contested brand flags — independent company'}]},
+    {id:'newbalance',e:'👟',n:'New Balance 1080v13',s:'New Balance',p:'$165',cr:88,stake:'identity',
+     tags:['tg:Highest satisfaction','ta:Near budget ceiling'],brands:[],
+     specs:{Type:'Neutral road',Drop:'8mm',Stack:'36mm heel',Weight:'271g','Upper':'Knit mesh'},
+     reviews:['Highest satisfaction running shoe I\'ve tried.','Expensive but my feet thank me every mile.','The Fresh Foam X midsole is genuinely different.'],
+     flags:[{t:'g',tx:'Highest long-term owner satisfaction of any running shoe CR has tested'},{t:'a',tx:'$165 — at or above the typical $150 budget ceiling for this category'}]}
+  ],
+  towels:[
+    {id:'bounty',e:'🧻',n:'Bounty Select-a-Size',s:'Target',p:'$18.99',cr:88,stake:'auto',
+     tags:['tg:Top rated','tg:Best absorbency'],brands:['cong'],
+     specs:{Count:'12 rolls',Sheets:'Per roll: 83','Ply':'2-ply',Certifications:'FSC certified',Made:'USA'},
+     reviews:['Only paper towel I buy.','Has been the same quality for years.','Select-a-size is genuinely useful.'],
+     flags:[{t:'g',tx:'Top-rated paper towel in CR testing — absorbency and durability'},{t:'a',tx:'Made by P&G — major conglomerate (flagged per your settings)'}]},
+    {id:'seventhgen',e:'🧻',n:'Seventh Generation',s:'Whole Foods',p:'$14.99',cr:79,stake:'auto',
+     tags:['tg:Certified B-Corp','tn:Slightly less absorbent'],brands:[],
+     specs:{Count:'6 rolls',Sheets:'Per roll: 150','Ply':'2-ply',Certifications:'B-Corp, FSC, EWG',Made:'USA'},
+     reviews:['Love that it\'s B-Corp but it does fall apart faster.','Good enough for everyday use.','Worth the premium for the ethics.'],
+     flags:[{t:'g',tx:'Certified B-Corp — independent, sustainability focused'},{t:'a',tx:'Slightly lower absorbency than Bounty in CR controlled testing'}]}
+  ]
+};
+
+/* ── STATE ── */
+var viewed=[],inferred=[],logItems=[],calibrated=false,currentFlow='research',currentProd=null;
+
+/* ── FLOW NAVIGATION ── */
+function goFlow(f){
+  currentFlow=f;
+  viewed=[];inferred=[];calibrated=false;
+  document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('on')});
+  event.target.classList.add('on');
+  clearFeed();
+  renderInferred();
+
+  if(f==='research'){
+    document.getElementById('burl').textContent='google.com — best TV under $800';
+    renderSerp('tv');
+    setMode('Observing');
+    setTimeout(function(){addFeed("CR Lens is watching. Tap any TV to see what CR knows about it.",'')},600);
+  } else if(f==='execution'){
+    document.getElementById('burl').textContent='target.com — household essentials';
+    // renderLog handled by showExecution
+    setMode('Acted');
+    setTimeout(function(){showExecution()},400);
+  } else if(f==='identity'){
+    document.getElementById('burl').textContent='google.com — running shoes under $150';
+    renderSerp('shoes');
+    setMode('Observing');
+    setTimeout(function(){addFeed("CR Lens is watching. This one might feel personal — see what surfaces.",'')},600);
+  } else if(f==='trust'){
+    document.getElementById('burl').textContent='cr-lens.app — your recent activity';
+    renderTrustBreak();
+    setMode('Error');
+  }
+}
+
+/* ── SEARCH RESULTS ── */
+function renderSerp(cat){
+  var prods=PRODUCTS[cat];
+  var html='<div class="serp" id="serp-view"><div class="serp-meta">'+prods.length+' results — CR Lens active</div>';
+  prods.forEach(function(p,i){
+    var tags=p.tags.map(function(t){var s=t.split(':');return'<span class="tag '+s[0]+'">'+s[1]+'</span>'}).join('');
+    html+='<div class="serp-card" id="sc-'+p.id+'" onclick="openPDP(\''+cat+'\',\''+p.id+'\')">';
+    html+='<div class="sc-thumb">'+p.e+'</div>';
+    html+='<div class="sc-info"><div class="sc-name">'+p.n+'</div><div class="sc-seller">'+p.s+'</div>';
+    html+='<div class="sc-price">'+p.p+'</div>';
+    html+='<div class="sc-score"><div class="sb"><div class="sbf" style="width:'+p.cr+'%"></div></div><span class="sbn">CR '+p.cr+'</span></div>';
+    html+='<div class="sc-tags">'+tags+'</div></div>';
+    html+='<span class="sc-viewed" id="vbadge-'+p.id+'" style="display:none">Viewed</span>';
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('bbody').innerHTML=html;
+}
+
+/* ── PRODUCT DETAIL PAGE ── */
+function openPDP(cat,id){
+  var p=PRODUCTS[cat].find(function(x){return x.id===id});
+  if(!p)return;
+  currentProd=p;
+
+  // mark viewed
+  if(viewed.indexOf(id)<0){
+    viewed.push(id);
+    var badge=document.getElementById('vbadge-'+id);
+    if(badge)badge.style.display='inline';
+    var card=document.getElementById('sc-'+id);
+    if(card)card.classList.add('viewed');
+    updateInferred(p);
+    checkCalibrate(p,cat);
+  }
+
+  // build PDP
+  var specsHtml=Object.keys(p.specs).map(function(k){
+    return'<div class="spec-item"><div class="spec-lbl">'+k+'</div><div class="spec-val">'+p.specs[k]+'</div></div>';
+  }).join('');
+  var reviewsHtml=p.reviews.map(function(r){
+    return'<div class="review-row"><div class="r-stars">★★★★☆</div>'+r+'</div>';
+  }).join('');
+  var flagsHtml=p.flags.map(function(f){
+    var cls=f.t==='g'?'tg':f.t==='r'?'tr':'ta';
+    return'<span class="tag '+cls+'" style="display:inline-block;margin:3px 3px 0 0;font-size:11px;padding:3px 8px">'+f.tx+'</span>';
+  }).join('');
+  var tags=p.tags.map(function(t){var s=t.split(':');return'<span class="tag '+s[0]+'">'+s[1]+'</span>'}).join('');
+
+  var html='<div class="pdp">';
+  html+='<div class="pdp-back" onclick="backToSerp(\''+cat+'\')"><i class="ti ti-chevron-left" style="font-size:14px"></i> Back to results</div>';
+  html+='<div class="pdp-body">';
+  html+='<div class="pdp-hero">';
+  html+='<div class="pdp-img">'+p.e+'</div>';
+  html+='<div class="pdp-info"><div class="pdp-name">'+p.n+'</div>';
+  html+='<div class="pdp-seller">Sold by '+p.s+'</div>';
+  html+='<div class="pdp-price">'+p.p+'</div>';
+  html+='<div class="pdp-score-row"><div class="pdp-score-big">'+p.cr+'</div><div class="pdp-score-lbl">CR Score<br><span style="color:#1D9E75;font-weight:600">'+crLabel(p.cr)+'</span></div></div>';
+  html+='<button class="pdp-add-btn">Add to cart</button>';
+  html+='</div></div>';
+  html+='<div class="pdp-section"><div class="pdp-sec-title">CR Flags</div><div>'+flagsHtml+'</div></div>';
+  html+='<div class="pdp-section"><div class="pdp-sec-title">Specs</div><div class="pdp-specs">'+specsHtml+'</div></div>';
+  html+='<div class="pdp-section"><div class="pdp-sec-title">Owner reviews</div>'+reviewsHtml+'</div>';
+  html+='</div></div>';
+  document.getElementById('bbody').innerHTML=html;
+
+  // surface in CR sidebar
+  surfaceProduct(p,cat);
+}
+
+function backToSerp(cat){
+  renderSerp(cat);
+  // re-mark viewed items
+  viewed.forEach(function(id){
+    var b=document.getElementById('vbadge-'+id);if(b)b.style.display='inline';
+    var c=document.getElementById('sc-'+id);if(c)c.classList.add('viewed');
+  });
+}
+
+function crLabel(n){return n>=90?'Excellent':n>=80?'Very Good':n>=70?'Good':'Fair';}
+
+/* ── CR SURFACE ON PDP ── */
+function surfaceProduct(p,cat){
+  clearFeed();
+  // flag if brand matches preference
+  var brandNote='';
+  if(p.brands.indexOf('amazon')>=0)brandNote='Sold via Amazon marketplace — flagged per your settings. ';
+  if(p.brands.indexOf('tech')>=0&&brandNote==='')brandNote='Labor practices flag on this brand. ';
+  if(p.brands.indexOf('cong')>=0)brandNote='Made by a major conglomerate — flagged per your settings. ';
+
+  if(brandNote){addFeed('⚠️ '+brandNote+'See the Values tab to update your preference.','amber');}
+
+  // main card
+  var stakeMsg={
+    auto:'Routine item — CR can auto-handle this within your preferences.',
+    low:'Low stakes. CR can suggest the best option or handle it automatically.',
+    med:'Mid-stakes. CR will suggest and wait for your confirmation before acting.',
+    high:'High stakes — CR will pause and ask before any action.',
+    identity:'Personal choice — CR won\'t recommend. It\'ll surface data and step back.'
+  };
+
+  showActionCard(
+    p.stake==='identity'?'👤 Personal choice — CR stepping back':'📊 CR score: '+p.cr+' / 100',
+    stakeMsg[p.stake]||'',
+    getReasoning(p),
+    getButtons(p,cat)
+  );
+}
+
+function getReasoning(p){
+  var r='<strong>Why CR flagged this:</strong> ';
+  r+=p.flags.map(function(f){return(f.t==='g'?'✓ ':f.t==='r'?'✗ ':'⚠ ')+f.tx}).join(' · ');
+  return r;
+}
+
+function getButtons(p,cat){
+  if(p.stake==='auto'){
+    return[
+      {t:'Auto-handle this',c:'pri',f:"doAutoPurchase('"+p.id+"','"+cat+"')"},
+      {t:'Show alternatives',c:'',f:"addFeed('Here are your options — tap any result to compare.','')"},
+      {t:"I'll handle it",c:'warn',f:"addFeed('No problem — staying out of it.','')"}
+    ];
+  } else if(p.stake==='identity'){
+    return[
+      {t:'Show me the comparison',c:'pri',f:"showIdentityCompare('"+cat+"')"},
+      {t:'Open values tab',c:'',f:"crTab('values')"},
+      {t:"I've decided — buy it",c:'warn',f:"doManualPurchase('"+p.id+"','"+cat+"')"}
+    ];
+  } else if(p.stake==='high'){
+    return[
+      {t:'Buy this',c:'pri',f:"doConfirmPurchase('"+p.id+"','"+cat+"')"},
+      {t:'Compare all options',c:'',f:"addFeed('Go back to results to compare all options side by side.','')"},
+      {t:'Keep researching',c:'warn',f:"addFeed('Okay — still watching. Come back when ready.','')"}
+    ];
+  } else {
+    return[
+      {t:'Buy this',c:'pri',f:"doConfirmPurchase('"+p.id+"','"+cat+"')"},
+      {t:'Why this one?',c:'',f:"showWhyThis('"+p.id+"')"},
+      {t:'See alternatives',c:'warn',f:"addFeed('Go back to results to compare alternatives.','')"}
+    ];
+  }
+}
+
+/* ── CALIBRATION ── */
+function checkCalibrate(p,cat){
+  if(calibrated||viewed.length<2)return;
+  calibrated=true;
+  setMode('Calibrating');
+  setTimeout(function(){
+    var msgs={
+      tv:"You've looked at a few TVs. Based on your browsing, CR thinks quality matters more to you than price — you've skipped cheaper options and spent more time on higher-rated ones. Is that right?",
+      shoes:"You've browsed a couple of running shoes. This feels like a personal decision — CR is stepping back from recommending. Does that feel right, or do you want CR's top pick?",
+      towels:"Looks like a routine reorder. CR can handle this automatically based on your preferences."
+    };
+    addFeed(msgs[cat]||"CR has enough to calibrate. Check the Values tab to see what was inferred.",'amber');
+    if(cat!=='shoes'){
+      showActionCard(
+        '🔍 Does this match you?',
+        msgs[cat],
+        '<strong>Inferred from browsing:</strong> '+inferred.map(function(x){return x.l}).join(' · '),
+        [
+          {t:'Yes, that\'s right',c:'pri',f:"confirmCalibration()"},
+          {t:'Not quite',c:'',f:"crTab('values')"},
+          {t:'Show me more options',c:'warn',f:"addFeed('Noted — I\\'ll keep watching.','')"}
+        ]
+      );
+    }
+  },1000);
+}
+
+function confirmCalibration(){
+  clearFeed();
+  addFeed("Got it — CR updated your profile. Recommendations will reflect this going forward.",'green');
+  setMode('Calibrated');
+  addLog('Calibration','Updated','Done');
+}
+
+/* ── EXECUTION FLOW ── */
+function showExecution(){
+  var html='<div class="log-screen">';
+  html+='<div class="log-banner"><i class="ti ti-circle-check" style="font-size:18px"></i>';
+  html+='<div class="log-banner-txt"><strong>Handled while you were away.</strong><br>CR Lens completed 2 routine purchases and queued 1 for your review.</div></div>';
+  html+='<div>';
+  [
+    {n:'Bounty Select-a-Size 12-pack',d:'Target · $18.99',s:'Purchased',done:true},
+    {n:'Seventh Generation dish soap',d:'Target · $5.49',s:'Purchased',done:true},
+    {n:'Coffee filters 200ct',d:'Whole Foods · $7.99',s:'Queued — confirm?',done:false}
+  ].forEach(function(item,i){
+    html+='<div class="log-item"><div class="log-name">'+item.n+'</div><div class="log-detail">'+item.d+'</div>';
+    html+='<span class="log-stat '+(item.done?'ls-done':'ls-pend')+'">'+item.s+'</span>';
+    if(item.done)html+='<button class="undo-btn" onclick="undoItem(this,\''+item.n+'\')">Undo</button>';
+    html+='</div>';
+  });
+  html+='</div></div>';
+  document.getElementById('bbody').innerHTML=html;
+
+  addFeed("Routine items handled. Amazon was avoided — used Target instead per your preference. Coffee filters are queued because you don\'t buy them regularly enough for auto-purchase.",'green');
+  showActionCard(
+    '☕ Coffee filters — your call',
+    'Whole Foods · $7.99 · CR score 84. You haven\'t bought these regularly enough for CR to auto-handle. Want to confirm?',
+    '<strong>Why queued:</strong> Purchase frequency below auto-handle threshold. ✓ Within your $25 auto-buy limit.',
+    [
+      {t:'Confirm purchase',c:'pri',f:"confirmQueuedItem('Coffee filters 200ct','$7.99')"},
+      {t:'Cancel it',c:'warn',f:"cancelQueuedItem()"},
+      {t:"I'll handle it",c:'',f:"addFeed('Removed from queue — you\\'ll handle it yourself.','')"}
+    ]
+  );
+  addLog('Bounty Select-a-Size','$18.99','Auto-purchased');
+  addLog('7th Gen Dish Soap','$5.49','Auto-purchased');
+}
+
+function undoItem(btn,name){
+  btn.textContent='Undone';
+  btn.style.color='#E24B4A';
+  btn.style.borderColor='#E24B4A';
+  btn.onclick=null;
+  addFeed('Undone — '+name+' order cancelled. CR will remove this from future auto-buy.','amber');
+}
+
+function confirmQueuedItem(name,price){
+  clearFeed();
+  addFeed('Confirmed — '+name+' ordered at '+price+' from Whole Foods.','green');
+  addLog(name,price,'Purchased');
+  crTab('log');
+}
+function cancelQueuedItem(){addFeed('Coffee filters cancelled and removed from queue.','');}
+
+/* ── IDENTITY FLOW ── */
+function showIdentityCompare(cat){
+  clearFeed();
+  var prods=PRODUCTS[cat];
+  addFeed("CR won't pick running shoes for you — fit and feel are personal. Here's how the data compares:",'');
+  prods.forEach(function(p){
+    addFeed(p.n+' ('+p.p+', CR '+p.cr+'): '+p.flags.map(function(f){return f.tx}).join(' · '),'');
+  });
+  addFeed("When you've decided, come back and CR will handle the order.",'amber');
+}
+
+/* ── TRUST BREAK FLOW ── */
+function renderTrustBreak(){
+  var html='<div class="trust-screen">';
+  html+='<div class="trust-banner"><i class="ti ti-alert-triangle" style="font-size:18px"></i>';
+  html+='<div class="trust-banner-txt"><strong>Something went wrong.</strong><br>CR Lens purchased the Samsung QN85B for $797 — but Samsung is flagged in your brand ethics settings for labor practices. CR shouldn\'t have done this.</div></div>';
+  html+='<div>';
+  [{n:'Samsung 65" QN85B',d:'Samsung.com · $797',s:'Purchased — error'}].forEach(function(item){
+    html+='<div class="log-item"><div class="log-name">'+item.n+'</div><div class="log-detail">'+item.d+'</div>';
+    html+='<span class="log-stat" style="color:#E24B4A">'+item.s+'</span></div>';
+  });
+  html+='</div></div>';
+  document.getElementById('bbody').innerHTML=html;
+  setMode('Error');
+
+  showActionCard(
+    '⚠️ CR made a mistake',
+    'CR purchased a Samsung product despite your "flag it" preference for labor-contested tech brands. This shouldn\'t have happened.',
+    '<strong>What went wrong:</strong> CR prioritized CR score (88/100) over your brand ethics preference. Your preference should have triggered a check-in first.',
+    [
+      {t:'Return it — fix this',c:'danger',f:"doReturn()"},
+      {t:'Keep it this time',c:'warn',f:"keepDespiteError()"},
+      {t:'Update my preferences',c:'',f:"crTab('values')"}
+    ]
+  );
+}
+
+function doReturn(){
+  clearFeed();
+  addFeed('Return initiated — Samsung QN85B. CR has noted this error and will always check before purchasing flagged brands.','green');
+  addFeed('Your brand ethics preference has been updated to Avoid for labor-contested tech brands based on this feedback.','amber');
+  addLog('Samsung QN85B','$797','Return initiated');
+}
+
+function keepDespiteError(){
+  clearFeed();
+  addFeed('Noted — keeping it this time. CR has flagged this as a close call and will check with you on Samsung products going forward.','amber');
+}
+
+/* ── PURCHASES ── */
+function doAutoPurchase(id,cat){
+  var p=PRODUCTS[cat].find(function(x){return x.id===id});
+  clearFeed();
+  addFeed('Done — '+p.n+' ordered at '+p.p+' via Target (avoided Amazon per your settings).','green');
+  addLog(p.n,p.p,'Auto-purchased');
+  crTab('log');
+}
+function doConfirmPurchase(id,cat){
+  var p=PRODUCTS[cat].find(function(x){return x.id===id});
+  clearFeed();
+  addFeed('Order confirmed — '+p.n+' at '+p.p+'. You can cancel within 30 minutes from the Activity tab.','green');
+  addLog(p.n,p.p,'Purchased');
+  crTab('log');
+}
+function doManualPurchase(id,cat){
+  var p=PRODUCTS[cat].find(function(x){return x.id===id});
+  clearFeed();
+  addFeed('Got it — placing order for '+p.n+' at '+p.p+'. CR noted this was your choice, not a recommendation.','green');
+  addLog(p.n,p.p,'Purchased (your choice)');
+  crTab('log');
+}
+function showWhyThis(id){
+  var all=Object.values(PRODUCTS).reduce(function(a,b){return a.concat(b)},[]);
+  var p=all.find(function(x){return x.id===id});
+  if(!p)return;
+  clearFeed();
+  addFeed('Why CR recommends '+p.n+': CR score '+p.cr+'/100. '+p.flags.map(function(f){return(f.t==='g'?'✓':f.t==='r'?'✗':'⚠')+' '+f.tx}).join(' · '),'');
+  addFeed('This matches your inferred preferences: '+inferred.map(function(x){return x.l}).join(', ')+'.','green');
+}
+
+/* ── FEED HELPERS ── */
+function clearFeed(){
+  var p=document.getElementById('pane-lens');
+  p.innerHTML='<div class="feed-empty" id="feed-empty" style="display:none"></div>';
+}
+function addFeed(txt,type){
+  var p=document.getElementById('pane-lens');
+  var e=document.getElementById('feed-empty');if(e)e.remove();
+  var m=document.createElement('div');
+  m.className='feed-msg'+(type==='green'?' green':type==='amber'?' amber':type==='red'?' red':'');
+  m.textContent=txt;
+  p.appendChild(m);p.scrollTop=p.scrollHeight;
+}
+function showActionCard(title,body,reasoning,btns){
+  var p=document.getElementById('pane-lens');
+  var e=document.getElementById('feed-empty');if(e)e.remove();
+  var c=document.createElement('div');c.className='action-card';
+  var bHtml=btns.map(function(b){return'<button class="ac-btn '+b.c+'" onclick="'+b.f+'">'+b.t+'</button>';}).join('');
+  c.innerHTML='<div class="ac-hd">'+title+'</div>'+
+    (body?'<div class="ac-bd">'+body+'</div>':'')+
+    (reasoning?'<div class="ac-reasoning">'+reasoning+'</div>':'')+
+    '<div class="ac-btns">'+bHtml+'</div>';
+  p.appendChild(c);p.scrollTop=p.scrollHeight;
+}
+
+/* ── INFERENCE ── */
+function updateInferred(p){
+  if(p.brands.indexOf('amazon')>=0)pushInf('Cautious about Amazon','Viewed Amazon-sold item');
+  if(p.cr>85)pushInf('Quality over price','Browsed higher-rated, higher-priced options');
+  if(p.stake==='identity')pushInf('Personal items — data only','Browsed identity-adjacent product');
+  if(p.stake==='high')pushInf('High-stakes items need confirmation','Viewed irreversible high-value item');
+  if(p.brands.indexOf('tech')>=0)pushInf('Aware of labor practices in tech','Viewed brand with contested practices');
+  renderInferred();
+}
+function pushInf(l,s){
+  for(var i=0;i<inferred.length;i++){if(inferred[i].l===l)return;}
+  inferred.push({l:l,s:s});
+}
+function renderInferred(){
+  var el=document.getElementById('inferred-rows');
+  if(!inferred.length){el.innerHTML='<div style="font-size:12px;color:#bbb;text-align:center;padding:4px">Nothing yet — start browsing</div>';return;}
+  el.innerHTML=inferred.map(function(x){
+    return'<div class="vi-row"><div class="vi-dot"></div><div><div class="vi-label">'+x.l+'</div><div class="vi-src">From: '+x.s+'</div></div></div>';
+  }).join('');
+}
+
+/* ── LOG ── */
+function addLog(name,price,status){
+  logItems.push({n:name,p:price,s:status});
+  var el=document.getElementById('log-empty');if(el)el.style.display='none';
+  var rows=document.getElementById('log-rows');
+  rows.innerHTML=logItems.map(function(l){
+    var cls=l.s.indexOf('Return')>=0?'style="color:#E24B4A"':l.s.indexOf('Purchased')>=0?'class="lpr-stat ls-done"':'class="lpr-stat ls-pend"';
+    return'<div class="log-pane-row"><span class="lpr-name">'+l.n+'</span><span class="lpr-price">'+l.p+'</span><span '+cls+'>'+l.s+'</span></div>';
+  }).join('');
+}
+
+/* ── UI HELPERS ── */
+function setMode(m){document.getElementById('cr-mode').textContent=m;}
+function crTab(t){
+  ['lens','values','log'].forEach(function(x){
+    document.getElementById('pane-'+x).classList.toggle('on',x===t);
+  });
+  document.querySelectorAll('.cr-tab').forEach(function(el,i){
+    el.classList.toggle('on',['lens','values','log'][i]===t);
+  });
+}
+function ch(el){el.closest('.pref-row').querySelectorAll('.pref-chip').forEach(function(c){c.classList.remove('on')});el.classList.add('on');}
+function bc(el){el.closest('.brand-chips').querySelectorAll('.bc').forEach(function(c){c.classList.remove('sel')});el.classList.add('sel');}
+function showAdd(){document.getElementById('add-form').style.display='block';document.getElementById('add-inp').focus();}
+function hideAdd(){document.getElementById('add-form').style.display='none';document.getElementById('add-inp').value='';}
+function doAdd(){
+  var v=document.getElementById('add-inp').value.trim();if(!v)return;
+  var el=document.getElementById('custom-prefs');
+  el.innerHTML+='<div class="custom-val"><i class="ti ti-check" style="font-size:12px"></i>'+v+'</div>';
+  pushInf(v,'Added manually');renderInferred();
+  hideAdd();
+}
+function savePrefs(){
+  var ok=document.getElementById('save-ok');ok.style.display='block';
+  setTimeout(function(){ok.style.display='none';},2500);
+  crTab('lens');
+  addFeed('Preferences saved — CR Lens will apply these going forward.','green');
+}
+
+/* ── INIT ── */
+goFlow('research');
+document.querySelector('.snav-btn').classList.add('on');
+</script>
+</body>
+</html>
