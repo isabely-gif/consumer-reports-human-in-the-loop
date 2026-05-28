@@ -340,16 +340,16 @@ function goFlow(f){
     setTimeout(function(){addFeed("CR Lens is watching. Tap any TV to see what CR knows about it.",'')},600);
   } else if(f==='execution'){
     document.getElementById('burl').textContent='target.com — household essentials';
-    renderLog();
+    // renderLog handled by showExecution
     setMode('Acted');
     setTimeout(function(){showExecution()},400);
   } else if(f==='identity'){
-    document.getElementById('burl').textContent='google.com — running shoes under $150');
+    document.getElementById('burl').textContent='google.com — running shoes under $150';
     renderSerp('shoes');
     setMode('Observing');
     setTimeout(function(){addFeed("CR Lens is watching. This one might feel personal — see what surfaces.",'')},600);
   } else if(f==='trust'){
-    document.getElementById('burl').textContent='cr-lens.app — your recent activity');
+    document.getElementById('burl').textContent='cr-lens.app — your recent activity';
     renderTrustBreak();
     setMode('Error');
   }
